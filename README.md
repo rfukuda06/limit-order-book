@@ -1,19 +1,19 @@
 # Limit Order Book Simulator
 
-A single-threaded C++20 implementation of the core data structure behind
+This is a single-threaded C++20 implementation of the core data structure behind
 every electronic exchange: a limit order book with price-time priority
-matching. Orders arrive one at a time — limit orders rest in the book at
-their price, market orders sweep the best available levels — and a matching
-engine crosses them the way a real venue does: trades execute at the resting
+matching. Orders arrive one at a time, limit orders rest in the book at
+their price, market orders sweep the best available levels, and a matching
+engine crosses them the way a real venue does. Trades execute at the resting
 order's price, earlier orders at the same price fill first, and every
 submitted share is accounted for as traded, resting, or cancelled.
 
 The program runs in two modes: an interactive REPL where you trade against a
 seeded market simulator and watch the book, spread, and trade tape react to
 every order, and a benchmark mode that measures raw engine throughput.
-Standard library only — no external dependencies.
+Standard library only, no external dependencies.
 
-## What it looks like
+## Interactive REPL
 
 Running `./build/orderbook` drops you into a REPL against a simulated market
 (seed 42, so this exact book is reproducible):
@@ -44,7 +44,7 @@ Each row is a price level: aggregate resting quantity and (order count).
 Asks print worst-first so the best ask sits nearest the spread; your fills
 are tagged `(you)` in the trade tape.
 
-## REPL commands
+## Commands
 
     buy 50 @ 100.10   limit buy      step [N]    run N sim events
     sell 25 @ 100.50  limit sell     book [N]    top N levels/side
@@ -66,14 +66,13 @@ and all cancel-index bookkeeping:
 
 (Apple M-series, Release build, seed 42.) Order generation is pre-computed
 so the timed loop measures the engine alone, and identical seeds give
-identical trade/resting counts on every run — the checksum lines above
-double as a determinism proof.
+identical trade/resting counts on every run.
 
 ## Design
 
-Prices are int64 ticks (1 tick = $0.01) — floating point is never used for
-money, because 100.10 has no exact binary representation and would break map
-keys and equality.
+Prices are int64 ticks (1 tick = $0.01). This fixed-point representation 
+avoids floating-point rounding errors and enables exact price comparison 
+and reliable order-book indexing.
 
 The `OrderBook` is a pure data structure; the `MatchingEngine` is the
 algorithm that runs against it:
@@ -95,8 +94,7 @@ algorithm that runs against it:
 Matching rules: trades execute at the resting (maker) order's price, so price
 improvement goes to the incoming order; partially filled resting orders keep
 their queue position; an unfilled market-order remainder is cancelled, never
-rested. Invariant (asserted in debug builds): after any submit completes the
-book is never crossed.
+rested. Invariant: after any submit completes thebook is never crossed.
 
 ## Structure
 
@@ -130,7 +128,6 @@ book is never crossed.
 ## Simplifying assumptions
 
 Single security; strictly sequential order arrival; no latency, fees, or
-persistence; no self-trade prevention (one manual user + an anonymous
-simulator); no order modification; no hidden liquidity; the simulator is
-naive random flow around a drifting reference price, not a market model;
-only limit and market orders.
+persistence; no self-trade prevention; no order modification; no hidden 
+liquidity; the simulator is naive random flow around a drifting reference 
+price, not a market model; only limit and market orders.
