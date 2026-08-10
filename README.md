@@ -5,25 +5,53 @@ market/limit orders, cancellation, a seeded market simulator, an interactive
 REPL, and a throughput benchmark. Built as a learning project in market
 microstructure and C++ data structures — standard library only.
 
-## Build & run
+## What it looks like
 
-    brew install cmake                # once
-    cmake -B build && cmake --build build
-    ./build/orderbook_tests           # 30 tests
-    ./build/orderbook                 # interactive REPL
+Running `./build/orderbook` drops you into a REPL against a simulated market
+(seed 42, so this exact book is reproducible):
 
-    # benchmark (use an optimized build for numbers)
-    cmake -B build-release -DCMAKE_BUILD_TYPE=Release
-    cmake --build build-release
-    ./build-release/orderbook --benchmark
+    ================ ORDER BOOK ================
+            ASKS
+       100.09 |     70  (2)
+       100.08 |    109  (2)
+       100.07 |    114  (2)
+       100.05 |     42  (1)
+       100.03 |     95  (2)
+       100.02 |     13  (1)
+    --------------------------------------------
+     Best Ask: 100.02   Mid: 99.99   Spread: 0.06
+     Best Bid: 99.96
+    --------------------------------------------
+        99.96 |     73  (1)
+        99.95 |    163  (3)
+        99.94 |     11  (1)
+        99.93 |     61  (1)
+        99.92 |     33  (1)
+        99.91 |     48  (1)
+        99.90 |    100  (2)
+            BIDS
+    ============================================
 
-## REPL commands
+Each row is a price level: aggregate resting quantity and (order count).
+Asks print worst-first so the best ask sits nearest the spread; your fills
+are tagged `(you)` in the trade tape.
 
-    buy 50 @ 100.10   limit buy      step [N]    run N sim events
-    sell 25 @ 100.50  limit sell     book [N]    top N levels/side
-    buy 50            market buy     trades [N]  last N trades
-    sell 25           market sell    help / quit
-    cancel 12         cancel by id
+## Performance
+
+The matching engine sustains **16 million orders per second on a single
+core — roughly 62 nanoseconds per order** — including matching, resting,
+and all cancel-index bookkeeping:
+
+    Orders processed:  1000000
+    Execution time:    0.062 seconds
+    Throughput:        16.05 million orders/sec
+    Trades executed:   152723
+    Resting orders:    845416
+
+(Apple M-series, Release build, seed 42.) Order generation is pre-computed
+so the timed loop measures the engine alone, and identical seeds give
+identical trade/resting counts on every run — the checksum lines above
+double as a determinism proof.
 
 ## Design
 
@@ -54,16 +82,13 @@ their queue position; an unfilled market-order remainder is cancelled, never
 rested. Invariant (asserted in debug builds): after any submit completes the
 book is never crossed.
 
-## Benchmark
+## REPL commands
 
-    Orders processed:  1000000
-    Execution time:    0.062 seconds
-    Throughput:        16.05 million orders/sec
-    Trades executed:   152723
-    Resting orders:    845416
-
-(Apple M-series, Release build, seed 42 — identical seeds give identical
-trade/resting counts, demonstrating determinism.)
+    buy 50 @ 100.10   limit buy      step [N]    run N sim events
+    sell 25 @ 100.50  limit sell     book [N]    top N levels/side
+    buy 50            market buy     trades [N]  last N trades
+    sell 25           market sell    help / quit
+    cancel 12         cancel by id
 
 ## Simplifying assumptions
 
@@ -73,8 +98,14 @@ simulator); no order modification; no hidden liquidity; the simulator is
 naive random flow around a drifting reference price, not a market model;
 only limit and market orders.
 
-## Known extensions (deliberately not built)
+## Build & run
 
-Cache-friendly flat-vector book; pre-allocated price-indexed array book
-(the HFT direction); IOC/FOK/stop orders; order modification; multiple
-instruments; concurrency.
+    brew install cmake                # once
+    cmake -B build && cmake --build build
+    ./build/orderbook_tests           # 30 tests
+    ./build/orderbook                 # interactive REPL
+
+    # benchmark (use an optimized build for numbers)
+    cmake -B build-release -DCMAKE_BUILD_TYPE=Release
+    cmake --build build-release
+    ./build-release/orderbook --benchmark
