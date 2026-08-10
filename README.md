@@ -73,21 +73,16 @@ double as a determinism proof.
 
 Prices are int64 ticks (1 tick = $0.01) — floating point is never used for
 money, because 100.10 has no exact binary representation and would break map
-keys and equality. Dollar strings exist only at the display boundary.
+keys and equality.
 
-The `OrderBook` is a pure data structure that stores resting orders; the
-`MatchingEngine` owns it and makes every trading decision:
+The `OrderBook` is a pure data structure; the `MatchingEngine` is the
+algorithm that runs against it:
 
 - Bids: `std::map<Price, PriceLevel, std::greater<>>` — best bid is `begin()`
 - Asks: `std::map<Price, PriceLevel, std::less<>>` — best ask is `begin()`
 - Each `PriceLevel`: `std::list<Order>` in FIFO arrival order + cached total
 - Cancel index: `unordered_map<OrderId, {side, price, list iterator}>` —
   `std::list` iterators stay valid under other insertions/erasures
-
-The opposite comparators make the best price `begin()` on both sides, so the
-engine never searches; FIFO within a level is time priority for free; and
-`std::list` iterator stability is what lets the cancel index jump straight
-to any resting order without scanning its level.
 
 | Operation | Complexity (L = price levels/side) |
 |---|---|
@@ -97,14 +92,11 @@ to any resting order without scanning its level.
 | Cancel | O(1) average (+O(log L) when a level empties) |
 | Depth snapshot, top N | O(N) |
 
-Matching is one loop: peek the front order of the best opposite level, fill
-at the maker's price while the incoming order still crosses, repeat. Trades
-execute at the resting (maker) order's price, so price improvement goes to
-the incoming order; partially filled resting orders keep their queue
-position; an unfilled market-order remainder is cancelled, never rested.
-Validation lives at the boundary (the REPL rejects bad input, the engine
-asserts its preconditions), and an invariant asserted in debug builds
-guarantees the book is never crossed after any submit.
+Matching rules: trades execute at the resting (maker) order's price, so price
+improvement goes to the incoming order; partially filled resting orders keep
+their queue position; an unfilled market-order remainder is cancelled, never
+rested. Invariant (asserted in debug builds): after any submit completes the
+book is never crossed.
 
 ## Structure
 
