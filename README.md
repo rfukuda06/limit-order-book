@@ -96,23 +96,6 @@ improvement goes to the incoming order; partially filled resting orders keep
 their queue position; an unfilled market-order remainder is cancelled, never
 rested. Invariant: after any submit completes thebook is never crossed.
 
-## Structure
-
-    src/
-      types.h                 Price/Quantity/OrderId, Side, OrderType, Order, Trade
-      order_book.{h,cpp}      resting-order storage: price-time priority, O(1) cancel
-      matching_engine.{h,cpp} crossing algorithm, per-order share accounting
-      display.{h,cpp}         price formatting/parsing, book + trade rendering
-      simulator.{h,cpp}       seeded random order flow around a drifting reference
-      repl.{h,cpp}            command parsing (pure, unit-tested) + interactive loop
-      benchmark.{h,cpp}       pre-generated load, engine-only timing
-      main.cpp                CLI dispatch: REPL (default), --benchmark [N], --seed S
-    tests/
-      test_framework.h        hand-rolled TEST/CHECK/CHECK_EQ harness
-      test_*.cpp              30 tests: book operations, 12 matching scenarios,
-                              price parsing, simulator determinism, REPL parsing
-    CMakeLists.txt            two targets: orderbook, orderbook_tests (CTest)
-
 ## Build & run
 
     brew install cmake                # once
