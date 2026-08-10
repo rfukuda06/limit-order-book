@@ -143,3 +143,11 @@ rests.
     cmake -B build-release -DCMAKE_BUILD_TYPE=Release
     cmake --build build-release
     ./build-release/orderbook --benchmark
+
+## Simplifying assumptions
+
+Single security; strictly sequential order arrival; no latency, fees, or
+persistence; no self-trade prevention (one manual user + an anonymous
+simulator); no order modification; no hidden liquidity; the simulator is
+naive random flow around a drifting reference price, not a market model;
+only limit and market orders.
