@@ -1,16 +1,13 @@
 # Limit Order Book Simulator
 
-This is a single-threaded C++20 implementation of the core data structure behind
+A single-threaded C++20 implementation of the data structure at the heart of
 every electronic exchange: a limit order book with price-time priority
-matching. Orders arrive one at a time, limit orders rest in the book at
-their price, market orders sweep the best available levels, and a matching
-engine crosses them the way a real venue does. Trades execute at the resting
-order's price, earlier orders at the same price fill first, and every
-submitted share is accounted for as traded, resting, or cancelled.
+matching. Limit orders rest in the book, market orders sweep the best
+available levels, and trades execute at the resting order's price with
+earlier orders at the same price filling first.
 
-The program runs in two modes: an interactive REPL where you trade against a
-seeded market simulator and watch the book, spread, and trade tape react to
-every order, and a benchmark mode that measures raw engine throughput —
+Two modes: an interactive REPL where you trade against a seeded market
+simulator, and a benchmark that measures raw engine throughput —
 **16 million orders per second on a single core, about 62 ns per order.**
 Standard library only, no external dependencies.
 
