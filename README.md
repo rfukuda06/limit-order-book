@@ -1,8 +1,10 @@
-# Limit Order Book Simulator
+# Limit Order Book & Matching Engine
 
-This is a single-threaded C++20 implementation of the data structure at the heart of
-every electronic exchange: a limit order book with price-time priority
-matching. Limit orders rest in the book, market orders sweep the best
+This is a single-threaded C++20 implementation of the two pieces at the
+heart of every electronic exchange: a limit order book — a pure data
+structure holding resting orders in price-time priority — and a matching
+engine that crosses incoming orders against it. Limit orders rest in the
+book, market orders sweep the best
 available levels, and trades execute at the resting order's price with
 earlier orders at the same price filling first.
 
