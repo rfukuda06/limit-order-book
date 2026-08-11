@@ -1,15 +1,14 @@
 # Limit Order Book & Matching Engine
 
 This is a single-threaded C++20 implementation of the two pieces at the
-heart of every electronic exchange: a limit order book — a pure data
-structure holding resting orders in price-time priority — and a matching
-engine that crosses incoming orders against it. Limit orders rest in the
-book, market orders sweep the best
-available levels, and trades execute at the resting order's price with
+heart of every electronic exchange: a limit order book that holds resting 
+orders in price-time priority and a matching engine that crosses incoming 
+orders against it. Limit orders rest in the book, market orders sweep the 
+best available levels, and trades execute at the resting order's price with
 earlier orders at the same price filling first.
 
-Two modes: an interactive REPL where you trade against a seeded market
-simulator, and a benchmark that measures raw engine throughput —
+There are two modes: an interactive REPL where you trade against a seeded 
+market simulator, and a benchmark that measures raw engine throughput —
 **16 million orders per second on a single core, about 62 ns per order.**
 Standard library only, no external dependencies.
 
